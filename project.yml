@@ -1,0 +1,26 @@
+name: Chat.z.ai
+options:
+  deploymentTarget:
+    iOS: '14.0'
+
+targets:
+  Chat.z.ai:
+    type: application
+    platform: iOS
+    sources:
+      - Chat.z.ai
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.chatai.app
+        INFOPLIST_FILE: Chat.z.ai/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_VERSION: '5.0'
+        CODE_SIGN_IDENTITY: ''
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGNING_ALLOWED: NO
+    info:
+      path: Chat.z.ai/Info.plist
+      properties:
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UILaunchStoryboardName: LaunchScreen
