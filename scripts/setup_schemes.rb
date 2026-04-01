@@ -25,6 +25,8 @@ RESOURCE_FILES = %w[
   Assets.xcassets
 ].freeze
 
+MANAGED_FILES = (SOURCE_FILES + RESOURCE_FILES + %w[Info.plist Chat.z.ai.entitlements]).freeze
+
 def apply_base_settings!(target)
   target.build_configurations.each do |config|
     config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.chatai.app'
@@ -53,7 +55,23 @@ def ensure_build_file!(phase, file_ref)
   phase.add_file_reference(file_ref)
 end
 
+def remove_stale_build_files!(phase, managed_paths)
+  managed_names = managed_paths.map { |path| File.basename(path) }
+
+  phase.files.each do |build_file|
+    file_ref = build_file.file_ref
+    next unless file_ref
+
+    ref_path = file_ref.path.to_s
+    should_remove = managed_paths.include?(ref_path) || managed_names.include?(File.basename(ref_path))
+    build_file.remove_from_project if should_remove
+  end
+end
+
 def attach_files_to_target!(project, target, main_group)
+  remove_stale_build_files!(target.source_build_phase, SOURCE_FILES)
+  remove_stale_build_files!(target.resources_build_phase, RESOURCE_FILES)
+
   SOURCE_FILES.each do |path|
     file_ref = ensure_file_reference!(project, main_group, path)
     ensure_build_file!(target.source_build_phase, file_ref)
@@ -87,7 +105,16 @@ end
 def load_project
   return create_or_repair_project! unless File.exist?(PBXPROJ_PATH)
 
-  Xcodeproj::Project.open(PROJECT_PATH)
+  project = Xcodeproj::Project.open(PROJECT_PATH)
+
+  # Recover from skeletal project files that technically parse but contain no objects.
+  if project.root_object.nil? || project.main_group.nil?
+    warn 'Project file is missing core objects. Rebuilding a minimal project...'
+    FileUtils.rm_rf(PROJECT_PATH)
+    return create_or_repair_project!
+  end
+
+  project
 rescue StandardError => e
   warn "Project file is invalid (#{e.message}). Rebuilding a minimal project..."
   FileUtils.rm_rf(PROJECT_PATH)
@@ -107,6 +134,15 @@ def ensure_target!(project)
 
   apply_base_settings!(target)
   attach_files_to_target!(project, target, main_group)
+
+  # Remove duplicate or root-level references for files managed under SOURCE_ROOT.
+  project.files.each do |file_ref|
+    next unless MANAGED_FILES.include?(file_ref.path.to_s)
+    next if file_ref.parent == main_group
+
+    file_ref.remove_from_project
+  end
+
   project.save
 end
 
