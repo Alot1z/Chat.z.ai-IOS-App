@@ -2,9 +2,12 @@ import SwiftUI
 
 struct ChatView: View {
     @StateObject private var viewModel = ChatViewModel()
+    @State private var showingClearConfirmation = false
 
     var body: some View {
         VStack(spacing: 0) {
+            modelPicker
+
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 10) {
@@ -45,6 +48,32 @@ struct ChatView: View {
         }
         .navigationTitle("Chat.z.ai")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Clear") {
+                    showingClearConfirmation = true
+                }
+                .disabled(viewModel.messages.isEmpty || viewModel.isLoading)
+            }
+        }
+        .alert("Clear conversation?", isPresented: $showingClearConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Clear", role: .destructive) {
+                viewModel.clearConversation()
+            }
+        } message: {
+            Text("This removes all messages in this chat on this device.")
+        }
+    }
+
+    private var modelPicker: some View {
+        Picker("Model", selection: $viewModel.selectedModel) {
+            ForEach(ChatModel.allCases) { model in
+                Text(model.rawValue).tag(model)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding([.horizontal, .top])
     }
 }
 

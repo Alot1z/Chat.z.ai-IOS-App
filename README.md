@@ -14,6 +14,24 @@ This project prioritizes reproducible CI builds and local automation over distri
 
 ---
 
+## App functions (current)
+
+The app currently focuses on the core chat workflow and reliability features:
+
+- **Message composer** with send-state protection (prevents empty submissions and duplicate sends while a request is active).
+- **Conversation timeline** with automatic scrolling to the newest message.
+- **Assistant typing state** (`Thinking…`) while the request is in progress.
+- **Model selection in-app** (segmented control) so you can switch model targets before sending.
+- **Conversation reset** from the top-right **Clear** action with confirmation.
+- **Response parsing fallback chain** that supports multiple JSON response shapes and falls back to raw text.
+- **Network/error handling** with user-visible message bubbles for request failures.
+
+### Site-function parity status
+
+This repository implements the chat-first subset of site behavior. Features commonly found on the web product (for example account management, billing, rich file tools, and server-managed conversation history) are backend/platform capabilities and are not fully represented in this lightweight iOS sample client.
+
+---
+
 ## Prerequisites
 
 - macOS with Xcode installed
