@@ -1,37 +1,28 @@
 require 'rake'
-require 'rake/file_utils'
 
-include Rake::FileUtilsExt
-
-desc 'Setup project dependencies'
+desc 'Install Ruby dependencies'
 task :setup do
   sh 'bundle install'
-  sh 'gem install shenzhen ios-deploy xcodeproj'
 end
 
-desc 'Recreate Xcode schemes'
+desc 'Repair/prepare the Xcode project and shared schemes'
 task :schemes do
-  ruby 'scripts/setup_schemes.rb'
+  sh 'bundle exec ruby scripts/setup_schemes.rb'
+end
+
+desc 'Apply unsigned signing configuration'
+task :sign do
+  sh 'bundle exec ruby scripts/sign_app.rb'
 end
 
 desc 'Build unsigned IPA'
-task :build do
-  sh 'scripts/build_and_deploy.sh'
+task build: %i[schemes sign] do
+  sh './scripts/build_and_deploy.sh'
 end
 
-desc 'Install to device'
-task :install do
-  ipa_path = Dir.glob('**/*.ipa').first || 'build/ipa/Chat.z.ai-unsigned.ipa'
-  sh "ios-deploy --debug --bundle #{ipa_path}"
-end
-
-desc 'Full build and install'
-task deploy: %i[build install]
-
-desc 'Clean build artifacts'
+desc 'Clean artifacts'
 task :clean do
-  rm_rf 'build/'
-  rm_rf 'Chat.z.ai/build/'
+  sh 'rm -rf build'
 end
 
 task default: :build

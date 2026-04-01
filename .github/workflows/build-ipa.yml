@@ -3,48 +3,58 @@ name: Build Unsigned IPA
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: macos-latest
+  build-unsigned-ipa:
+    runs-on: macos-14
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.0'
+          ruby-version: '3.2'
           bundler-cache: true
 
-      - name: Install Dependencies
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Repair project and schemes
+        run: bundle exec ruby scripts/setup_schemes.rb
+
+      - name: Apply unsigned signing
+        run: bundle exec ruby scripts/sign_app.rb
+
+      - name: Build app bundle
         run: |
-          gem install shenzhen
-          gem install ios-deploy
-          gem install xcodeproj
+          set -euo pipefail
+          xcodebuild \
+            -project Chat.z.ai.xcodeproj \
+            -scheme Chat.z.ai \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build
 
-      - name: Setup Xcode
-        run: sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-
-      - name: Recreate User Schemes
-        run: ruby scripts/setup_schemes.rb
-
-      - name: Build IPA (Unsigned)
+      - name: Package unsigned IPA
         run: |
-          ipa build --project Chat.z.ai.xcodeproj --scheme Chat.z.ai --configuration Release --sdk iphoneos --no-archive
-
-      - name: Package IPA
-        run: |
+          set -euo pipefail
+          APP_PATH=$(find build/DerivedData -type d -name '*.app' | head -n 1)
+          test -n "$APP_PATH"
+          rm -rf build/ipa
           mkdir -p build/ipa/Payload
-          cp -R build/Release-iphoneos/*.app build/ipa/Payload/ 2>/dev/null || cp -R build/Products/Release-iphoneos/*.app build/ipa/Payload/
-          cd build/ipa
-          zip -r Chat.z.ai-unsigned.ipa Payload
+          cp -R "$APP_PATH" build/ipa/Payload/
+          (cd build/ipa && /usr/bin/zip -qry Chat.z.ai-unsigned.ipa Payload)
 
-      - name: Upload Artifact
+      - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: Chat.z.ai-unsigned-ipa
           path: build/ipa/Chat.z.ai-unsigned.ipa
-
-      - name: IPA Info
-        run: ipa info build/ipa/Chat.z.ai-unsigned.ipa || true
