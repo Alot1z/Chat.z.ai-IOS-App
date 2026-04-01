@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: bundle install
 
-      - name: Repair project and schemes
+      - name: Validate shared scheme
         run: bundle exec ruby scripts/setup_schemes.rb
 
       - name: Apply unsigned signing
