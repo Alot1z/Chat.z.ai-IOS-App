@@ -9,6 +9,8 @@ on:
 jobs:
   build-unsigned-ipa:
     runs-on: macos-14
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -46,8 +48,10 @@ jobs:
       - name: Package unsigned IPA
         run: |
           set -euo pipefail
-          APP_PATH=$(find build/DerivedData -type d -name '*.app' | head -n 1)
-          test -n "$APP_PATH"
+          APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/Chat.z.ai.app"
+          test -d "$APP_PATH"
+          APP_BINARY_NAME=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_PATH/Info.plist")
+          test -f "$APP_PATH/$APP_BINARY_NAME"
           rm -rf build/ipa
           mkdir -p build/ipa/Payload
           cp -R "$APP_PATH" build/ipa/Payload/
@@ -58,3 +62,19 @@ jobs:
         with:
           name: Chat.z.ai-unsigned-ipa
           path: build/ipa/Chat.z.ai-unsigned.ipa
+
+      - name: Create release tag
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "RELEASE_TAG=unsigned-ipa-${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "RELEASE_NAME=Unsigned IPA Build #${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+
+      - name: Publish IPA to GitHub Releases
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: ${{ env.RELEASE_NAME }}
+          files: build/ipa/Chat.z.ai-unsigned.ipa
+          fail_on_unmatched_files: true
+          generate_release_notes: true

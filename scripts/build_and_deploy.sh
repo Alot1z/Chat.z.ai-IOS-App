@@ -7,6 +7,8 @@ SCHEME="Chat.z.ai"
 DERIVED_DATA="build/DerivedData"
 IPA_DIR="build/ipa"
 IPA_PATH="$IPA_DIR/Chat.z.ai-unsigned.ipa"
+APP_PRODUCTS_DIR="$DERIVED_DATA/Build/Products/Release-iphoneos"
+APP_PATH="$APP_PRODUCTS_DIR/Chat.z.ai.app"
 
 printf '\n==> Preparing project\n'
 ruby scripts/setup_schemes.rb
@@ -26,9 +28,15 @@ xcodebuild \
   clean build
 
 printf '\n==> Packaging IPA\n'
-APP_PATH=$(find "$DERIVED_DATA" -type d -name '*.app' | head -n 1)
-if [[ -z "$APP_PATH" ]]; then
-  echo "No .app bundle found in $DERIVED_DATA"
+if [[ ! -d "$APP_PATH" ]]; then
+  echo "Expected app bundle not found at: $APP_PATH"
+  exit 1
+fi
+
+APP_BINARY_NAME=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_PATH/Info.plist")
+APP_BINARY_PATH="$APP_PATH/$APP_BINARY_NAME"
+if [[ ! -f "$APP_BINARY_PATH" ]]; then
+  echo "Parse Error 303 prevention: main binary is missing at $APP_BINARY_PATH"
   exit 1
 fi
 
