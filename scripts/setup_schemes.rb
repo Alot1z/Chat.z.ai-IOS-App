@@ -38,6 +38,7 @@ def apply_base_settings!(target)
     config.build_settings['SWIFT_VERSION'] = '5.0'
     config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
     config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
+    config.build_settings['ASSETCATALOG_COMPILER_APPICON_NAME'] = ''
     config.build_settings['LD_RUNPATH_SEARCH_PATHS'] = '$(inherited) @executable_path/Frameworks'
   end
 end
