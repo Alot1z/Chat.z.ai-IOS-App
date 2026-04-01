@@ -7,38 +7,40 @@ struct ChatView: View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
+                    LazyVStack(alignment: .leading, spacing: 10) {
                         ForEach(viewModel.messages) { message in
                             MessageBubble(message: message)
+                                .id(message.id)
+                        }
+
+                        if viewModel.isLoading {
+                            ProgressView("Thinking…")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal)
                         }
                     }
-                    .padding()
+                    .padding(.vertical)
                 }
                 .onChange(of: viewModel.messages.count) { _ in
-                    if let last = viewModel.messages.last {
-                        withAnimation {
-                            proxy.scrollTo(last.id, anchor: .bottom)
-                        }
+                    guard let last = viewModel.messages.last else { return }
+                    withAnimation {
+                        proxy.scrollTo(last.id, anchor: .bottom)
                     }
                 }
             }
 
-            VStack(spacing: 0) {
-                Divider()
-                HStack(spacing: 12) {
-                    TextField("Type a message...", text: $viewModel.inputText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .frame(minHeight: 36)
+            Divider()
+            HStack(spacing: 12) {
+                TextField("Type a message…", text: $viewModel.inputText)
+                    .textFieldStyle(.roundedBorder)
 
-                    Button(action: viewModel.sendMessage) {
-                        Image(systemName: "paperplane.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(viewModel.inputText.isEmpty ? .gray : .blue)
-                    }
-                    .disabled(viewModel.isLoading || viewModel.inputText.isEmpty)
+                Button(action: viewModel.sendMessage) {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 18, weight: .semibold))
                 }
-                .padding()
+                .disabled(viewModel.isLoading || viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+            .padding()
             .background(Color(.systemBackground))
         }
         .navigationTitle("Chat.z.ai")
@@ -46,49 +48,22 @@ struct ChatView: View {
     }
 }
 
-struct MessageBubble: View {
+private struct MessageBubble: View {
     let message: ChatMessage
 
     var body: some View {
         HStack {
-            if message.isFromUser {
-                Spacer()
-                Text(message.text)
-                    .padding(12)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(16)
-                    .cornerRadius(4, corners: [.bottomRight])
-            } else {
-                Text(message.text)
-                    .padding(12)
-                    .background(Color.gray.opacity(0.2))
-                    .foregroundColor(.primary)
-                    .cornerRadius(16)
-                    .cornerRadius(4, corners: [.bottomLeft])
-                Spacer()
-            }
+            if message.isFromUser { Spacer(minLength: 40) }
+
+            Text(message.text)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .foregroundStyle(message.isFromUser ? .white : .primary)
+                .background(message.isFromUser ? Color.blue : Color.gray.opacity(0.2))
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            if !message.isFromUser { Spacer(minLength: 40) }
         }
-        .id(message.id)
-    }
-}
-
-extension View {
-    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape(RoundedCorner(radius: radius, corners: corners))
-    }
-}
-
-struct RoundedCorner: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
+        .padding(.horizontal)
     }
 }

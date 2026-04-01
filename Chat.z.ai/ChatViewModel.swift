@@ -1,29 +1,29 @@
-import Foundation
 import Combine
+import Foundation
 
-class ChatViewModel: ObservableObject {
+final class ChatViewModel: ObservableObject {
     @Published var messages: [ChatMessage] = []
-    @Published var inputText: String = ""
-    @Published var isLoading: Bool = false
+    @Published var inputText = ""
+    @Published var isLoading = false
 
     private var cancellables = Set<AnyCancellable>()
 
     func sendMessage() {
-        guard !inputText.isEmpty else { return }
+        let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !isLoading else { return }
 
-        let userMessage = ChatMessage(text: inputText, isFromUser: true)
-        messages.append(userMessage)
-        let sentText = inputText
+        messages.append(ChatMessage(text: trimmed, isFromUser: true))
         inputText = ""
         isLoading = true
 
-        APIClient.shared.sendMessage(sentText)
+        APIClient.shared.sendMessage(trimmed)
             .receive(on: DispatchQueue.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
-                    self?.isLoading = false
+                    guard let self else { return }
+                    self.isLoading = false
                     if case let .failure(error) = completion {
-                        self?.messages.append(ChatMessage(text: "Error: \(error.localizedDescription)", isFromUser: false))
+                        self.messages.append(ChatMessage(text: "Error: \(error.localizedDescription)", isFromUser: false))
                     }
                 },
                 receiveValue: { [weak self] reply in

@@ -1,31 +1,26 @@
 #!/usr/bin/env ruby
 
+# Applies unsigned-signing settings to project and all targets.
+
 require 'xcodeproj'
 
-puts 'Setting up code signing...'
-project_path = 'Chat.z.ai.xcodeproj'
-project = Xcodeproj::Project.open(project_path)
+PROJECT_PATH = 'Chat.z.ai.xcodeproj'.freeze
+UNSIGNED_SETTINGS = {
+  'CODE_SIGN_STYLE' => 'Manual',
+  'CODE_SIGN_IDENTITY' => '',
+  'PROVISIONING_PROFILE_SPECIFIER' => '',
+  'DEVELOPMENT_TEAM' => '',
+  'CODE_SIGNING_REQUIRED' => 'NO',
+  'CODE_SIGNING_ALLOWED' => 'NO'
+}.freeze
 
-target = project.targets.first
-raise 'No targets found in project.' unless target
+project = Xcodeproj::Project.open(PROJECT_PATH)
 
-project.build_configurations.each do |config|
-  config.build_settings['CODE_SIGN_STYLE'] = 'Manual'
-  config.build_settings['CODE_SIGN_IDENTITY'] = 'iPhone Developer'
-  config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = ''
-  config.build_settings['DEVELOPMENT_TEAM'] = ''
-  config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
-  config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
-end
-
-target.build_configurations.each do |config|
-  config.build_settings['CODE_SIGN_STYLE'] = 'Manual'
-  config.build_settings['CODE_SIGN_IDENTITY'] = 'iPhone Developer'
-  config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = ''
-  config.build_settings['DEVELOPMENT_TEAM'] = ''
-  config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
-  config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+(project.build_configurations + project.targets.flat_map(&:build_configurations)).each do |config|
+  UNSIGNED_SETTINGS.each do |key, value|
+    config.build_settings[key] = value
+  end
 end
 
 project.save
-puts 'Code signing settings updated for unsigned builds!'
+puts 'Unsigned signing settings were applied across project and targets.'

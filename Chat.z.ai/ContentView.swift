@@ -5,5 +5,6 @@ struct ContentView: View {
         NavigationView {
             ChatView()
         }
+        .navigationViewStyle(.stack)
     }
 }

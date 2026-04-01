@@ -3,24 +3,30 @@ options:
   deploymentTarget:
     iOS: '14.0'
 
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: com.chatai.app
+    SWIFT_VERSION: '5.0'
+    CODE_SIGNING_ALLOWED: NO
+    CODE_SIGNING_REQUIRED: NO
+
+configs:
+  Debug: debug
+  Release: release
+
 targets:
   Chat.z.ai:
     type: application
     platform: iOS
+    deploymentTarget: '14.0'
     sources:
       - Chat.z.ai
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.chatai.app
-        INFOPLIST_FILE: Chat.z.ai/Info.plist
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        SWIFT_VERSION: '5.0'
-        CODE_SIGN_IDENTITY: ''
-        CODE_SIGNING_REQUIRED: NO
-        CODE_SIGNING_ALLOWED: NO
     info:
       path: Chat.z.ai/Info.plist
       properties:
+        UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
-        UILaunchStoryboardName: LaunchScreen
+    settings:
+      base:
+        INFOPLIST_FILE: Chat.z.ai/Info.plist

@@ -1,53 +1,50 @@
 # Chat.z.ai iOS App
 
-Unofficial iOS client for chat.z.ai with automated IPA building.
+Unofficial iOS client with an unsigned IPA-focused build pipeline for CI and local automation.
 
-## Quick Start
+## Why this repo is structured this way
 
-### Prerequisites
+- The repository intentionally supports **unsigned** builds to produce test artifacts in CI.
+- The checked-in `Chat.z.ai.xcodeproj/project.pbxproj` may be a placeholder in some branches.
+- `scripts/setup_schemes.rb` can rebuild a minimal valid Xcode project and regenerate schemes when needed.
 
-- macOS with Xcode 12+
-- Ruby 2.7+
+## Prerequisites
+
+- macOS + Xcode
+- Ruby 3.x
 - Bundler
 
-### Setup
+## Local workflow
 
 ```bash
 bundle install
-```
-
-### Build IPA
-
-```bash
-rake build
-# or
+ruby scripts/setup_schemes.rb
+ruby scripts/sign_app.rb
 ./scripts/build_and_deploy.sh
 ```
 
-## Manual Steps
+Output IPA:
 
-1. Setup schemes:
+- `build/ipa/Chat.z.ai-unsigned.ipa`
+
+## CI workflow
+
+GitHub Actions builds unsigned IPA artifacts on push/PR using:
+
+- project/scheme repair
+- centralized unsigned signing
+- deterministic IPA packaging from the built `.app`
+
+See `.github/workflows/build-ipa.yml`.
+
+## Rake shortcuts
 
 ```bash
-ruby scripts/setup_schemes.rb
+rake setup   # install gems
+rake build   # build unsigned ipa
+rake clean   # remove build artifacts
 ```
 
-2. Build:
+## Note
 
-```bash
-ipa build --project Chat.z.ai.xcodeproj --scheme Chat.z.ai
-```
-
-3. Install to device:
-
-```bash
-ios-deploy --debug --bundle Chat.z.ai.ipa
-```
-
-## GitHub Actions
-
-Automatically builds unsigned IPA on every push to `main`.
-
-## ⚠️ Warning
-
-This app uses unofficial API endpoints and may break at any time. For best experience, use the official Kimi iOS app from App Store.
+This project uses unofficial endpoints and behavior may change at any time.
