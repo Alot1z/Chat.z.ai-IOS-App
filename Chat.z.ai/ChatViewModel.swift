@@ -5,6 +5,7 @@ final class ChatViewModel: ObservableObject {
     @Published var messages: [ChatMessage] = []
     @Published var inputText = ""
     @Published var isLoading = false
+    @Published var selectedModel: ChatModel = .kimiK25
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -16,7 +17,7 @@ final class ChatViewModel: ObservableObject {
         inputText = ""
         isLoading = true
 
-        APIClient.shared.sendMessage(trimmed)
+        APIClient.shared.sendMessage(trimmed, model: selectedModel.apiValue)
             .receive(on: DispatchQueue.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
@@ -32,10 +33,33 @@ final class ChatViewModel: ObservableObject {
             )
             .store(in: &cancellables)
     }
+
+    func clearConversation() {
+        messages.removeAll()
+    }
 }
 
 struct ChatMessage: Identifiable, Equatable {
     let id = UUID()
     let text: String
     let isFromUser: Bool
+}
+
+enum ChatModel: String, CaseIterable, Identifiable {
+    case kimiK25 = "Kimi K2.5"
+    case gpt4oMini = "GPT-4o mini"
+    case deepSeekV3 = "DeepSeek V3"
+
+    var id: String { rawValue }
+
+    var apiValue: String {
+        switch self {
+        case .kimiK25:
+            return "kimi-k2-5"
+        case .gpt4oMini:
+            return "gpt-4o-mini"
+        case .deepSeekV3:
+            return "deepseek-v3"
+        }
+    }
 }

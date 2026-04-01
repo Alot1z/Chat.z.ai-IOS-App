@@ -14,7 +14,7 @@ final class APIClient {
         session = URLSession(configuration: config)
     }
 
-    func sendMessage(_ message: String) -> AnyPublisher<String, Error> {
+    func sendMessage(_ message: String, model: String) -> AnyPublisher<String, Error> {
         let endpoint = baseURL.appendingPathComponent("api/chat")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
@@ -23,7 +23,7 @@ final class APIClient {
 
         let payload: [String: Any] = [
             "message": message,
-            "model": "kimi-k2-5",
+            "model": model,
             "stream": false
         ]
 
