@@ -34,6 +34,8 @@ GitHub Actions builds unsigned IPA artifacts on push/PR using:
 - project/scheme repair
 - centralized unsigned signing
 - deterministic IPA packaging from the built `.app`
+- validation that the app bundle contains the expected main executable (avoids parse/install errors)
+- automatic upload of the generated `.ipa` to GitHub Releases on pushes to `main`
 
 See `.github/workflows/build-ipa.yml`.
 
