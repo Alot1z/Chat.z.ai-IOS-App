@@ -1,0 +1,1 @@
+// Intentionally minimal placeholder. The canonical project is generated/repaired by scripts/setup_schemes.rb.
