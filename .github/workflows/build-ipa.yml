@@ -28,9 +28,6 @@ jobs:
       - name: Repair project and schemes
         run: bundle exec ruby scripts/setup_schemes.rb
 
-      - name: Apply unsigned signing
-        run: bundle exec ruby scripts/sign_app.rb
-
       - name: Build app bundle
         run: |
           set -euo pipefail
@@ -40,6 +37,9 @@ jobs:
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath build/DerivedData \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \

@@ -10,13 +10,8 @@ task :schemes do
   sh 'bundle exec ruby scripts/setup_schemes.rb'
 end
 
-desc 'Apply unsigned signing configuration'
-task :sign do
-  sh 'bundle exec ruby scripts/sign_app.rb'
-end
-
 desc 'Build unsigned IPA'
-task build: %i[schemes sign] do
+task build: %i[schemes] do
   sh './scripts/build_and_deploy.sh'
 end
 

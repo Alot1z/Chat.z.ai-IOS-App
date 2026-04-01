@@ -12,7 +12,6 @@ APP_PATH="$APP_PRODUCTS_DIR/Chat.z.ai.app"
 
 printf '\n==> Preparing project\n'
 ruby scripts/setup_schemes.rb
-ruby scripts/sign_app.rb
 
 printf '\n==> Building app bundle\n'
 rm -rf build
@@ -22,6 +21,9 @@ xcodebuild \
   -configuration Release \
   -sdk iphoneos \
   -derivedDataPath "$DERIVED_DATA" \
+  CODE_SIGN_STYLE=Manual \
+  DEVELOPMENT_TEAM="" \
+  PROVISIONING_PROFILE_SPECIFIER="" \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGN_IDENTITY="" \

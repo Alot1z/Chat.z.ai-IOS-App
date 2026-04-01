@@ -47,7 +47,6 @@ Run from the repository root:
 ```bash
 bundle install
 ruby scripts/setup_schemes.rb
-ruby scripts/sign_app.rb
 ./scripts/build_and_deploy.sh
 ```
 
@@ -64,7 +63,7 @@ GitHub Actions builds unsigned IPA artifacts on pushes and pull requests.
 Pipeline highlights:
 
 1. Project/scheme repair if required
-2. Centralized unsigned signing step
+2. Unsigned signing overrides passed directly to `xcodebuild`
 3. Deterministic IPA packaging from the built `.app`
 4. Validation that the `.app` contains the expected main executable
 5. Automatic upload of the generated `.ipa` to GitHub Releases on pushes to `main`
